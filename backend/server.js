@@ -4,6 +4,8 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
+import userRoutes from "./routes/userRoutes.js";
+import whiteboardRoutes from "./routes/whiteboardRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -19,6 +21,10 @@ const options = {
 app.use(cors(options));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Use routes
+app.use("/users", userRoutes);
+app.use("/whiteboards", whiteboardRoutes);
 
 // Connect to MongoDB
 const connectDB = async () => {
