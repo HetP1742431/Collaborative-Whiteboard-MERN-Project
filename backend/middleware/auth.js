@@ -11,16 +11,11 @@ export const authMiddleware = (req, res, next) => {
   }
 
   // Verify authorization token validity
-  const decode = jwt.verify(
-    token,
-    process.env.JWT_SECRET_KEY,
-    (error, user) => {
-      if (error)
-        return res
-          .status(401)
-          .json({ error: "Token not valid, authorization denied" });
-      req.user = user;
-      next();
-    }
-  );
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    req.user = decoded.user;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Token not valid, authorization denied" });
+  }
 };
