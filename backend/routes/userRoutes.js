@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-// User sign-up
+// User sign-up route
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -13,16 +13,31 @@ router.post("/signup", async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
+
+    // Password hashing
     const hashedPassord = await bcrypt.hash(password, 10);
     const newUser = new User({ username, email, password: hashedPassord });
     await newUser.save();
-    res.status(201).json({ message: "User profile created successfully" });
+
+    // Create JWT
+    const tokenData = { user: newUser.username };
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, {
+      expiresIn: "1d",
+    });
+    return res
+      .status(201)
+      .cookie("token", token, {
+        maxAge: 1 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: "strict",
+      })
+      .json({ message: `Welcome ${newUser.username}` });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// User log-in
+// User log-in route
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -30,11 +45,26 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
+
+    // Password comparison
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
-    return res.status(200).json({ message: "Logged in successfully" });
+
+    // Create JWT
+    const tokenData = { user: user.username };
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, {
+      expiresIn: "1d",
+    });
+    return res
+      .status(200)
+      .cookie("token", token, {
+        maxAge: 1 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: "strict",
+      })
+      .json({ message: `Welcome back ${user.username}` });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }

@@ -36,18 +36,28 @@ const connectDB = async () => {
   }
 };
 
-//Socket.IO configuration
+// Socket.IO configuration
+// TODO: Review Socket.IO configuration
 io.on("connection", (socket) => {
-  console.log("User connected");
+  console.log("New client connected:", socket.id);
+
+  socket.on("joinWhiteboard", (whiteboardId) => {
+    socket.join(whiteboardId);
+    console.log(`Client ${socket.id} joined whiteboard ${whiteboardId}`);
+  });
+
+  socket.on("draw", (data) => {
+    io.to(data.whiteboardId).emit("draw", data);
+  });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("Client disconnected:", socket.id);
   });
 });
 
-// Testing home path for server
+// Root route for homepage
 app.get("/", (req, res) => {
-  return res.send("Hello from server");
+  res.send("Welcome to the real-time collaborative whiteboard!");
 });
 
 // Connect and listen to PORT
