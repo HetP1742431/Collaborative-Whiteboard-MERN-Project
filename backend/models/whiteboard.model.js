@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const participantSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  role: { type: String, enum: ["read", "edit"], required: true },
+  role: { type: String, enum: ["owner", "editor", "viewer"], required: true },
 });
 
 const whiteboardSchema = new mongoose.Schema({
