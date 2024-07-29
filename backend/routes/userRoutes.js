@@ -41,7 +41,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Create JWT payload
-    const tokenData = { user: user.username };
+    const tokenData = { user: { username: user.username } };
 
     // Sign access token
     const accessToken = jwt.sign(tokenData, process.env.ACCESS_TOKEN_SECRET, {
@@ -53,15 +53,13 @@ router.post("/login", async (req, res) => {
       expiresIn: "1d",
     });
 
-    res
-      .status(200)
-      .cookie("refreshToken", refreshToken, {
-        maxAge: 1 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      })
-      .json({ accessToken }, { message: `Welcome back ${user.username}` });
+    res.status(200).cookie("refreshToken", refreshToken, {
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+    res.json({ accessToken, message: `Welcome back ${user.username}` });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }

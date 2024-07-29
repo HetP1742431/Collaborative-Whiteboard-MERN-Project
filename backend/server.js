@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import http from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
@@ -19,8 +20,9 @@ const options = {
 
 // Middleware
 app.use(cors(options));
-app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Use routes
 app.use("/users", userRoutes);

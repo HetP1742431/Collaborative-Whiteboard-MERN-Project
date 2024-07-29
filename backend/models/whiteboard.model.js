@@ -10,6 +10,13 @@ const whiteboardSchema = new mongoose.Schema({
   owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
   participants: [participantSchema],
   content: { type: Schema.Types.Mixed, default: [] },
+  invitationCodes: [
+    {
+      code: { type: String, required: true },
+      email: { type: String, required: true },
+      role: { type: String, required: true },
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
 });
 

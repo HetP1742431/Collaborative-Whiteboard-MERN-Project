@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "crypto";
 import { Whiteboard } from "../models/whiteboard.model.js";
 import { User } from "../models/user.model.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -13,15 +14,14 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const newWhiteboard = new Whiteboard({
       title,
-      owner: username,
-      participants: [{ user: username, role: "owner" }],
+      owner: user._id,
+      participants: [{ user: user._id, role: "owner" }],
     });
-
     const savedWhiteboard = await newWhiteboard.save();
 
     // Add whiteboard to user's whiteboards
@@ -36,10 +36,9 @@ router.post("/", authMiddleware, async (req, res) => {
 
 // Get all whiteboards for specific user
 router.get("/:username", authMiddleware, async (req, res) => {
+  const username = req.user.username;
   try {
-    const user = await User.findOne({ username: req.params.username }).populate(
-      "whiteboards"
-    );
+    const user = await User.findOne({ username }).populate("whiteboards");
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -54,7 +53,7 @@ router.get("/:username", authMiddleware, async (req, res) => {
   }
 });
 
-// Share whiteboard
+// Share whiteboard (generate sharable link/code)
 router.post("/:id/share", authMiddleware, async (req, res) => {
   const { role, recipientEmail } = req.body;
   const whiteboardId = req.params.id;
@@ -75,20 +74,22 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    const recipient = await User.findOne({ email: recipientEmail });
-    if (!recipient) {
-      return res.status(404).json({ error: "Recipient not found" });
-    }
+    // Generate a unique code for sharing
+    const shareCode = crypto.randomBytes(20).toString("hex");
 
-    // Add recipient to whiteboard participants
-    whiteboard.participants.push({ user: recipient._id, role });
+    // Add the share code to the whiteboard
+    whiteboard.invitationCodes.push({
+      code: shareCode,
+      email: recipientEmail,
+      role,
+    });
     await whiteboard.save();
 
-    // Add whiteboard to recipients's whiteboards
-    recipient.whiteboards.push(whiteboard._id);
-    await recipient.save();
-
-    res.json({ message: "Whiteboard shared successfully" });
+    res.json({
+      shareCode,
+      message:
+        "Share this code/link with the intended user to join the whiteboard",
+    });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -96,7 +97,7 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
 
 // Join the existing whiteboard
 router.post("/join", authMiddleware, async (req, res) => {
-  const { whiteboardId, role } = req.body;
+  const { shareCode } = req.body;
   const username = req.user.username;
 
   try {
@@ -105,9 +106,27 @@ router.post("/join", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const whiteboard = await Whiteboard.findById(whiteboardId);
-    if (!whiteboardId) {
-      return res.status(404).json({ error: "Whiteboard not found" });
+    // Find the whiteboard with the matching share code
+    const whiteboard = await Whiteboard.findOne({
+      "invitationCodes.code": shareCode,
+    });
+    if (!whiteboard) {
+      return res.status(404).json({ error: "Invalid invitation code" });
+    }
+
+    // Find the invitation entry
+    const invitation = whiteboard.invitationCodes.find(
+      (invite) => invite.code === shareCode
+    );
+
+    // Check if the invitation email matches the user's email or if the invitation is for an unregistered user
+    if (
+      invitation.email !== user.email &&
+      invitation.email !== "unregistered"
+    ) {
+      return res
+        .status(403)
+        .json({ error: "This invitation is not intended for you" });
     }
 
     // Check if user is already a participant
@@ -120,7 +139,7 @@ router.post("/join", authMiddleware, async (req, res) => {
     }
 
     // Add user to whiteboard participants
-    whiteboard.participants.push({ user: user._id, role });
+    whiteboard.participants.push({ user: user._id, role: invitation.role });
     await whiteboard.save();
 
     // Add whiteboard to user's whiteboards
