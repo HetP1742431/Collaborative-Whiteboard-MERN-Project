@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.box {
+  padding: 20px;
+  width: 100%;
+  max-width: 600px;
+  border: 0.1px solid rgb(190, 189, 189);
+  border-radius: 10px;
+  text-align: left;
+  box-shadow: 0 0 5px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.btn {
+  margin-bottom: 10px;
+  width: 100%;
+}

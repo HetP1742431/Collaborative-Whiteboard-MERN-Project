@@ -10,9 +10,14 @@ const router = express.Router();
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists" });
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      return res.status(400).json({ email: "Email already in use" });
+    }
+
+    const existingUserByUsername = await User.findOne({ username });
+    if (existingUserByUsername) {
+      return res.status(400).json({ username: "Username already used" });
     }
 
     // Password hashing
@@ -78,7 +83,7 @@ router.post("/token", (req, res) => {
   // Verify authorization token validity
   try {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const tokenData = { user: decoded.user.username };
+    const tokenData = { user: { username: decoded.user.username } };
 
     // Sign new access token
     const accessToken = jwt.sign(tokenData, process.env.ACCESS_TOKEN_SECRET, {
@@ -88,6 +93,21 @@ router.post("/token", (req, res) => {
     res.json({ accessToken });
   } catch (err) {
     res.status(401).json({ error: "Token not valid, authorization denied" });
+  }
+});
+
+// Fetch current user data
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.user.username }).select(
+      "-password"
+    );
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

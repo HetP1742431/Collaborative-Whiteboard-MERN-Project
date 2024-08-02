@@ -7,7 +7,7 @@ import { authMiddleware } from "../middleware/auth.js";
 const router = express.Router();
 
 // Create a new whiteboard
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/create", authMiddleware, async (req, res) => {
   const { title } = req.body;
   const username = req.user.username;
 
@@ -29,6 +29,35 @@ router.post("/", authMiddleware, async (req, res) => {
     await user.save();
 
     res.json(savedWhiteboard);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Fetch whiteboard data with access control
+router.get("/:id", authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const username = req.user.username;
+
+  try {
+    const whiteboard = await Whiteboard.findById(id).populate(
+      "participants.user",
+      "username"
+    );
+
+    if (!whiteboard) {
+      return res.status(404).json({ error: "Whiteboard not found" });
+    }
+
+    const isParticipant = whiteboard.participants.some(
+      (participant) => participant.user.username === username
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.json(whiteboard);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -146,7 +175,7 @@ router.post("/join", authMiddleware, async (req, res) => {
     user.whiteboards.push(whiteboard._id);
     await user.save();
 
-    res.json({ message: "Joined whiteboard successfully" });
+    res.json(whiteboard);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -172,7 +201,15 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ msg: "Access denied" });
     }
 
-    await whiteboard.remove();
+    // Delete whiteboard from every participant's document
+    await User.updateMany(
+      { _id: { $in: whiteboard.participants.map((p) => p.user) } },
+      { $pull: { whiteboards: whiteboardId } }
+    );
+
+    // Delete the whiteboard
+    await Whiteboard.deleteOne({ _id: whiteboardId });
+
     res.json({ message: "Whiteboard deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
@@ -216,6 +253,4 @@ router.patch("/:id/role", authMiddleware, async (req, res) => {
   }
 });
 
-// Share whiteboard
-router.post("/:username/share", authMiddleware, (req, res) => {});
 export default router;

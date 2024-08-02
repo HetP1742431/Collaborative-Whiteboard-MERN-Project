@@ -1,10 +1,59 @@
-import "bootstrap/dist/css/bootstrap.css";
+import React, { useContext } from "react";
+import { Route, Routes } from "react-router-dom";
+import Homepage from "./components/Homepage.jsx";
+import Login from "./components/Login.jsx";
+import Signup from "./components/Signup.jsx";
+import UserWhiteboards from "./components/UserWhiteboards.jsx";
+import CreateWhiteboard from "./components/CreateWhiteboard.jsx";
+import JoinWhiteboard from "./components/JoinWhiteboard.jsx";
+import Whiteboard from "./components/Whiteboard.jsx";
+import PrivateRoute from "./components/PrivateRoute.jsx";
+import { AuthContext } from "./AuthContext.jsx";
+import "./App.css";
 
 function App() {
+  const { user } = useContext(AuthContext);
+
   return (
-    <>
-      <h1> Hello World </h1>
-    </>
+    <div className="App">
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/users/login" element={<Login />} />
+        <Route path="/users/signup" element={<Signup />} />
+        <Route
+          path="/whiteboards/:username"
+          element={
+            <PrivateRoute user={user}>
+              <UserWhiteboards />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/whiteboards/create"
+          element={
+            <PrivateRoute user={user}>
+              <CreateWhiteboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/whiteboards/join"
+          element={
+            <PrivateRoute user={user}>
+              <JoinWhiteboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/whiteboards/:id"
+          element={
+            <PrivateRoute user={user}>
+              <Whiteboard />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </div>
   );
 }
 
