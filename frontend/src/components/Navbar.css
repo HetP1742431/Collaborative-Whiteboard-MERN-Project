@@ -1,0 +1,23 @@
+.navbar {
+  background-color: rgb(226, 234, 246);
+}
+
+.nav-link {
+  margin-right: 10px;
+}
+
+.nav-link.btn {
+  background-color: #6c63ff;
+}
+
+.nav-link.btn:hover {
+  background-color: #5a54d1;
+}
+
+.navbar-nav {
+  flex-direction: row;
+}
+
+.ml-auto {
+  margin-left: auto;
+}

@@ -26,7 +26,38 @@
   margin-bottom: 20px;
 }
 
-.btn {
+.sub-btn.btn {
   margin-bottom: 10px;
   width: 100%;
+  background-color: #6c63ff;
+}
+
+.sub-btn.btn:hover {
+  background-color: #5a54d1;
+}
+
+.text-danger {
+  color: red;
+}
+
+.is-invalid {
+  border-color: red;
+}
+
+.invalid-feedback {
+  color: red;
+  font-size: 0.875em;
+}
+
+.share-code {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+}
+
+.share-code code {
+  font-size: 1.2em;
+  font-weight: bold;
 }

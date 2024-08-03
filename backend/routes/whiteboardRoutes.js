@@ -28,7 +28,7 @@ router.post("/create", authMiddleware, async (req, res) => {
     user.whiteboards.push(savedWhiteboard._id);
     await user.save();
 
-    res.json(savedWhiteboard);
+    res.status(200).json(savedWhiteboard);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -36,7 +36,7 @@ router.post("/create", authMiddleware, async (req, res) => {
 
 // Fetch whiteboard data with access control
 router.get("/:id", authMiddleware, async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params.id;
   const username = req.user.username;
 
   try {
@@ -64,10 +64,14 @@ router.get("/:id", authMiddleware, async (req, res) => {
 });
 
 // Get all whiteboards for specific user
-router.get("/:username", authMiddleware, async (req, res) => {
-  const username = req.user.username;
+router.get("/:username/all", authMiddleware, async (req, res) => {
+  const username = req.params.username;
+
   try {
-    const user = await User.findOne({ username }).populate("whiteboards");
+    const user = await User.findOne({ username }).populate({
+      path: "whiteboards",
+      populate: { path: "owner", select: "username" },
+    });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -139,6 +143,7 @@ router.post("/join", authMiddleware, async (req, res) => {
     const whiteboard = await Whiteboard.findOne({
       "invitationCodes.code": shareCode,
     });
+
     if (!whiteboard) {
       return res.status(404).json({ error: "Invalid invitation code" });
     }

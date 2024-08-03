@@ -1,0 +1,80 @@
+/* src/components/UserWhiteboards.css */
+.heading {
+  /* font-size: 1.5em; */
+  color: #6c63ff;
+  margin-bottom: 20px;
+  text-align: center;
+  margin: 20px;
+}
+
+.whiteboards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 20px
+}
+
+.whiteboard-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 3px;
+  width: fit;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.whiteboard-content p {
+  margin: 5px 0;
+}
+
+.whiteboard-title {
+  font-size: 1.1em;
+  color: #6c63ff;
+}
+
+.invite-btn {
+  background-color: #6c63ff !important;
+  border-color: #6c63ff !important;
+  color: white !important; /* Ensure text color is white */
+}
+
+.invite-btn:hover {
+  background-color: #5a54d1 !important;
+  border-color: #5a54d1 !important;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px
+}
+
+.actions .btn {
+  width: 48%;
+  background-color: #6c63ff;
+  border-color: #6c63ff;
+}
+
+.actions .btn-secondary {
+  color: #6c63ff;
+  background-color: white;
+  border-color: #6c63ff;
+}
+
+.actions .btn:hover {
+  background-color: #5a54d1;
+  border-color: #5a54d1;
+}
+
+.actions .btn-secondary:hover {
+  background-color: #9489c4;
+  border-color: #9489c4;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.875em;
+  margin-top: 20px;
+}

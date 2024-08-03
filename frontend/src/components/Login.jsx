@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import api from "../apiConfig";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
+import Navbar from "./Navbar.jsx";
 import "./Forms.css";
 
 const Login = () => {
@@ -24,7 +25,7 @@ const Login = () => {
         const userResponse = await api.get("/users/me");
         setUser(userResponse.data);
 
-        navigate(`/whiteboards/${userResponse.data.username}`);
+        navigate(`/whiteboards/${userResponse.data.username}/all`);
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -37,46 +38,52 @@ const Login = () => {
   };
 
   return (
-    <div className="container">
-      <div className="box">
-        <h2 className="text-center">Login</h2>
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              className={`form-control ${errors.error ? "is-invalid" : ""}`}
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              className={`form-control ${errors.error ? "is-invalid" : ""}`}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {errors.error && <div className="text-danger">{errors.error}</div>}
-          <button type="submit" className="btn btn-primary btn-block mt-4">
-            Login
-          </button>
-        </form>
-        <span className="text-sm">
-          Don't have an account?{" "}
-          <Link to="/users/signup" className="text-blue-600">
-            {" "}
-            Sign up
-          </Link>
-        </span>
+    <>
+      <Navbar />
+      <div className="container">
+        <div className="box">
+          <h2 className="text-center">Login</h2>
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                className={`form-control ${errors.error ? "is-invalid" : ""}`}
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                className={`form-control ${errors.error ? "is-invalid" : ""}`}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {errors.error && <div className="text-danger">{errors.error}</div>}
+            <button
+              type="submit"
+              className="sub-btn btn btn-primary btn-block mt-4"
+            >
+              Login
+            </button>
+          </form>
+          <span className="text-sm">
+            Don't have an account?{" "}
+            <Link to="/users/signup" className="text-blue-600">
+              {" "}
+              Sign up
+            </Link>
+          </span>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

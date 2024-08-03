@@ -9,7 +9,7 @@ import JoinWhiteboard from "./components/JoinWhiteboard.jsx";
 import Whiteboard from "./components/Whiteboard.jsx";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import { AuthContext } from "./AuthContext.jsx";
-import "./App.css";
+import ShareWhiteboard from "./components/ShareWhiteboard.jsx";
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -21,7 +21,7 @@ function App() {
         <Route path="/users/login" element={<Login />} />
         <Route path="/users/signup" element={<Signup />} />
         <Route
-          path="/whiteboards/:username"
+          path="/whiteboards/:username/all"
           element={
             <PrivateRoute user={user}>
               <UserWhiteboards />
@@ -33,6 +33,14 @@ function App() {
           element={
             <PrivateRoute user={user}>
               <CreateWhiteboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/whiteboards/:id/share"
+          element={
+            <PrivateRoute user={user}>
+              <ShareWhiteboard />
             </PrivateRoute>
           }
         />

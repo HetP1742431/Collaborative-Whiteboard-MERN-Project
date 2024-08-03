@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../apiConfig";
 import { Link, useNavigate } from "react-router-dom";
+import Navbar from "./Navbar.jsx";
 import "./Forms.css";
 
 const Signup = () => {
@@ -37,62 +38,67 @@ const Signup = () => {
   };
 
   return (
-    <div className="container">
-      <div className="box">
-        <h2 className="text-center">Sign up</h2>
-        <form onSubmit={handleSignup}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              className="form-control"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-            {errors.username && (
-              <div className="text-danger">{errors.username}</div>
-            )}
-          </div>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            {errors.email && <div className="text-danger">{errors.email}</div>}
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            {errors.password && (
-              <div className="text-danger">{errors.password}</div>
-            )}
-          </div>
-          <button type="submit" className="btn btn-primary mt-4">
-            Sign up
-          </button>
-        </form>
-        <span className="text-sm">
-          Already have an account?{" "}
-          <Link to="/users/login" className="text-blue-600">
-            Login
-          </Link>
-        </span>
+    <>
+      <Navbar />
+      <div className="container">
+        <div className="box">
+          <h2 className="text-center">Sign up</h2>
+          <form onSubmit={handleSignup}>
+            <div className="form-group">
+              <label htmlFor="username">Username</label>
+              <input
+                type="text"
+                className="form-control"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+              {errors.username && (
+                <div className="text-danger">{errors.username}</div>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                className="form-control"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              {errors.email && (
+                <div className="text-danger">{errors.email}</div>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                className="form-control"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              {errors.password && (
+                <div className="text-danger">{errors.password}</div>
+              )}
+            </div>
+            <button type="submit" className="sub-btn btn btn-primary mt-4">
+              Sign up
+            </button>
+          </form>
+          <span className="text-sm">
+            Already have an account?{" "}
+            <Link to="/users/login" className="text-blue-600">
+              Login
+            </Link>
+          </span>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

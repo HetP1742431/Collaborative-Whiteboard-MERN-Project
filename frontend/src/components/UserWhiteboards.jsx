@@ -1,29 +1,86 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../apiConfig";
+import { AuthContext } from "../AuthContext";
+import Navbar from "./Navbar";
+import "./UserWhiteboards.css";
 
-const UserWhiteboards = (e) => {
+const UserWhiteboards = () => {
+  const [whiteboards, setWhiteboards] = useState([]);
+  const [errors, setErrors] = useState({});
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleClickCreate = async () => {
-    try {
-      navigate("/whiteboards/create");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  useEffect(() => {
+    const fetchWhiteboards = async () => {
+      try {
+        if (user) {
+          const response = await api.get(`/whiteboards/${user.username}/all`);
+          setWhiteboards(response.data);
+        }
+      } catch (error) {
+        if (error.response && error.response.data) {
+          setErrors({ error: error.response.data.error });
+        } else {
+          console.error("Fetch whiteboards error", error);
+          setErrors({ error: "An unexpected error occurred" });
+        }
+      }
+    };
 
-  const handleClickJoin = async () => {
-    try {
-      navigate("/whiteboards/join");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    fetchWhiteboards();
+  }, [user]);
 
   return (
     <>
-      <h1> Hello from UserWhiteboards</h1>
-      <button onClick={handleClickCreate}> Create Whiteboard</button>
-      <button onClick={handleClickJoin}> Join existing whiteboard</button>
+      <Navbar />
+      <h2 className="heading">{user ? user.username : "user"}'s Whiteboards</h2>
+      <div className="whiteboards-list">
+        {whiteboards.map((whiteboard) => (
+          <div key={whiteboard._id} className="whiteboard-card">
+            <div className="whiteboard-content">
+              <div>
+                <strong>
+                  <u>
+                    <Link
+                      to={`/whiteboards/${whiteboard._id}`}
+                      className="whiteboard-title"
+                    >
+                      {whiteboard.title}
+                    </Link>
+                  </u>
+                </strong>
+              </div>
+              <p>Owner: {whiteboard.owner.username}</p>
+              <p>
+                Created on:{" "}
+                {new Date(whiteboard.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+            <button
+              className="invite-btn btn btn-primary mt-3"
+              onClick={() => navigate(`/whiteboards/${whiteboard._id}/share`)}
+            >
+              Invite
+            </button>
+          </div>
+        ))}
+        {errors.error && <div className="error-message">{errors.error}</div>}
+      </div>
+      <div className="actions">
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate("/whiteboards/create")}
+        >
+          Create New Whiteboard
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => navigate("/whiteboards/join")}
+        >
+          Join Existing Whiteboard
+        </button>
+      </div>
     </>
   );
 };
