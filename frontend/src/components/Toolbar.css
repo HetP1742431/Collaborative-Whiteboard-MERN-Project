@@ -1,0 +1,32 @@
+.toolbar {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.tool-btn {
+  background-color: #fff;
+  color: #000;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  margin: 0 5px;
+  border-radius: 5px;
+  font-size: 17px;
+}
+
+.tool-btn.selected {
+  background-color: #e8d3ff;
+  color: black;
+}
+
+.tool-btn:hover {
+  background-color: #f1e9fd;
+}
