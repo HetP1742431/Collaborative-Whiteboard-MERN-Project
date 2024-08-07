@@ -1,11 +1,12 @@
 import React, { createContext, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "./apiConfig";
+import { api } from "./apiConfig";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -15,6 +16,7 @@ export const AuthProvider = ({ children }) => {
       const publicPaths = ["/", "/users/login", "/users/signup"];
 
       if (publicPaths.includes(location.pathname)) {
+        setLoading(false);
         return;
       }
 
@@ -29,15 +31,21 @@ export const AuthProvider = ({ children }) => {
         // Fetch the user data
         const userResponse = await api.get("/users/me");
         setUser(userResponse.data);
+        setLoading(false);
       } catch (error) {
         console.log("Not authenticated", error);
         setUser(null);
+        setLoading(false);
         navigate("/users/login");
       }
     };
 
     checkAuth();
   }, [location.pathname, navigate]);
+
+  if (loading) {
+    return;
+  }
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>

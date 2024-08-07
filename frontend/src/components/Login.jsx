@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import api from "../apiConfig";
+import { api } from "../apiConfig";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
 import Navbar from "./Navbar.jsx";

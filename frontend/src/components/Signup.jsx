@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../apiConfig";
+import { api } from "../apiConfig";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import "./Forms.css";

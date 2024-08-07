@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import api from "../apiConfig";
+import { api } from "../apiConfig";
 import { AuthContext } from "../AuthContext";
 import Navbar from "./Navbar.jsx";
 import "./Forms.css"; // Custom CSS for additional styling

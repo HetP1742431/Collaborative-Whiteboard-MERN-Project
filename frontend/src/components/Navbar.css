@@ -1,5 +1,7 @@
 .navbar {
   background-color: rgb(226, 234, 246);
+  z-index: 1000;
+  width: 100%;
 }
 
 .nav-link {
@@ -20,4 +22,11 @@
 
 .ml-auto {
   margin-left: auto;
+}
+
+.fixed-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
 }

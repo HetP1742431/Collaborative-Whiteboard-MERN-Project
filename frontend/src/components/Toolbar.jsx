@@ -3,7 +3,7 @@ import { GoPencil, GoArrowRight, GoCircle } from "react-icons/go";
 import { CiText, CiEraser } from "react-icons/ci";
 import { MdOutlineRectangle } from "react-icons/md";
 import { AiOutlineMinus } from "react-icons/ai";
-import { FaMousePointer } from "react-icons/fa";
+import { BiPointer } from "react-icons/bi";
 import "./Toolbar.css";
 
 const Toolbar = ({ setTool }) => {
@@ -20,7 +20,7 @@ const Toolbar = ({ setTool }) => {
         className={`tool-btn ${selectedTool === "pointer" ? "selected" : ""}`}
         onClick={() => handleToolClick("pointer")}
       >
-        <FaMousePointer />
+        <BiPointer />
       </button>
       <button
         className={`tool-btn ${selectedTool === "pencil" ? "selected" : ""}`}

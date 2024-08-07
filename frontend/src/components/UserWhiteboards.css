@@ -1,17 +1,19 @@
-/* src/components/UserWhiteboards.css */
 .heading {
-  /* font-size: 1.5em; */
   color: #6c63ff;
   margin-bottom: 20px;
   text-align: center;
   margin: 20px;
 }
 
+.user-whiteboards-container {
+  padding-top: 100px;
+}
+
 .whiteboards-list {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  margin: 20px
+  margin: 20px;
 }
 
 .whiteboard-card {
@@ -37,7 +39,7 @@
 .invite-btn {
   background-color: #6c63ff !important;
   border-color: #6c63ff !important;
-  color: white !important; /* Ensure text color is white */
+  color: white !important;
 }
 
 .invite-btn:hover {
@@ -48,7 +50,7 @@
 .actions {
   display: flex;
   justify-content: space-between;
-  margin: 20px
+  margin: 20px;
 }
 
 .actions .btn {

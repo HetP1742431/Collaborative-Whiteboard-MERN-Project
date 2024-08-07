@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../apiConfig";
+import { api } from "../apiConfig";
 import { AuthContext } from "../AuthContext";
 import Navbar from "./Navbar.jsx";
 import "./Forms.css";

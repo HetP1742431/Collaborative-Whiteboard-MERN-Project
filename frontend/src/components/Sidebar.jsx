@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useParams } from "react-router-dom";
 import {
   FaBars,
   FaSignInAlt,
@@ -12,13 +13,15 @@ import {
 import { LiaBarsSolid } from "react-icons/lia";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
-import api from "../apiConfig";
+import { api } from "../apiConfig";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const { id } = useParams();
 
   const handleLogout = async () => {
     try {
@@ -45,7 +48,7 @@ const Sidebar = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/whiteboards/create">
+                <Link to={`/whiteboards/${id}/share`}>
                   <FaShare className="symbol" /> Share this Whiteboard
                 </Link>
               </li>

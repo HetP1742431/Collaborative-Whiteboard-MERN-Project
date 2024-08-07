@@ -13,14 +13,16 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
-const options = {
-  origin: "http://localhost:5173",
-  credentials: true,
-};
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
 // Middleware
-app.use(cors(options));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -40,7 +42,6 @@ const connectDB = async () => {
 };
 
 // Socket.IO configuration
-// TODO: Review Socket.IO configuration
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
 
@@ -50,7 +51,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("draw", (data) => {
-    io.to(data.whiteboardId).emit("draw", data);
+    socket.to(data.whiteboardId).emit("draw", data);
   });
 
   socket.on("disconnect", () => {
@@ -58,14 +59,9 @@ io.on("connection", (socket) => {
   });
 });
 
-// Root route for homepage
-app.get("/", (req, res) => {
-  res.send("Welcome to the real-time collaborative whiteboard!");
-});
-
 // Connect and listen to PORT
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   connectDB();
   console.log(`Server running on port ${PORT}`);
 });

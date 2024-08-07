@@ -1,5 +1,11 @@
-const Homepage = () => {
-  return <h1> Hello from Homepage</h1>;
+import Whiteboard from "./Whiteboard";
+
+const HomePage = () => {
+  return (
+    <div>
+      <Whiteboard whiteboardId="guest" />
+    </div>
+  );
 };
 
-export default Homepage;
+export default HomePage;

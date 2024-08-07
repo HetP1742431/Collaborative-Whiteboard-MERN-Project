@@ -36,14 +36,13 @@ router.post("/create", authMiddleware, async (req, res) => {
 
 // Fetch whiteboard data with access control
 router.get("/:id", authMiddleware, async (req, res) => {
-  const { id } = req.params.id;
+  const id = req.params.id;
   const username = req.user.username;
 
   try {
-    const whiteboard = await Whiteboard.findById(id).populate(
-      "participants.user",
-      "username"
-    );
+    const whiteboard = await Whiteboard.findById(id)
+      .populate("participants.user", "username")
+      .lean();
 
     if (!whiteboard) {
       return res.status(404).json({ error: "Whiteboard not found" });
@@ -57,9 +56,25 @@ router.get("/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    res.json(whiteboard);
+    res.json(whiteboard.content);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Save whiteboard content
+router.put("/:id", authMiddleware, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const whiteboard = await Whiteboard.findById(id);
+    if (!whiteboard) {
+      return res.status(404).send("Whiteboard not found");
+    }
+    whiteboard.content = req.body.content;
+    await whiteboard.save();
+    res.send(whiteboard);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 });
 

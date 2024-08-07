@@ -1,4 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
+import { io } from "socket.io-client";
+import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Toolbar from "./Toolbar";
 import ToolOptionsSidebar from "./ToolOptionsSidebar";
@@ -12,41 +14,106 @@ import {
   textTool,
 } from "./ToolFunctions";
 import "./Whiteboard.css";
+import { baseURL, api } from "../apiConfig";
+
+const socket = io(baseURL, {
+  transports: ["websocket"],
+});
 
 const Whiteboard = () => {
   const canvasRef = useRef(null);
   const [tool, setTool] = useState("pointer");
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [strokeWidth, setStrokeWidth] = useState(3); // Default strokeWidth is 3
-  const [eraserSize, setEraserSize] = useState(10); // Default eraser size is 10
-  const [color, setColor] = useState("#000000"); // Default color is black
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [eraserSize, setEraserSize] = useState(10);
+  const [color, setColor] = useState("#000000");
   const [textProperties, setTextProperties] = useState({
-    fontSize: 20, // Default font size
-    fontFamily: "Arial", // Default font family
-    color: "#000000", // Default color
+    fontSize: 20,
+    fontFamily: "Arial",
+    color: "#000000",
   });
-  const [elements, setElements] = useState(() => {
-    const savedElements = localStorage.getItem("elements");
-    return savedElements ? JSON.parse(savedElements) : [];
-  });
-  const [currentText, setCurrentText] = useState(""); // State to manage current text being typed
-  const [typingPosition, setTypingPosition] = useState(null); // Position to start typing text
-  const [cursorVisible, setCursorVisible] = useState(true); // State for cursor visibility
-  const [undoStack, setUndoStack] = useState([]); // Stack for undo actions
-  const [redoStack, setRedoStack] = useState([]); // Stack for redo actions
+  const [elements, setElements] = useState([]);
+  const [currentText, setCurrentText] = useState("");
+  const [typingPosition, setTypingPosition] = useState(null);
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to server:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from server");
+    });
+
+    socket.on("draw", (data) => {
+      if (data.tool === "eraser") {
+        setElements((prevElements) =>
+          eraserTool(
+            Array.isArray(prevElements) ? prevElements : [],
+            data.x,
+            data.y,
+            data.size
+          )
+        );
+      } else if (data.tool === "clearCanvas") {
+        setElements([]);
+      } else if (data.tool === "undo" || data.tool === "redo") {
+        setElements(data.elements || []);
+        setUndoStack(data.undoStack || []);
+        setRedoStack(data.redoStack || []);
+      } else {
+        setElements((prevElements) =>
+          Array.isArray(prevElements) ? [...prevElements, data] : [data]
+        );
+      }
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("draw");
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadWhiteboard = async () => {
+      try {
+        if (id) {
+          const response = await api.get(`/whiteboards/${id}`);
+          setElements(response.data || []);
+        } else {
+          const savedElements = localStorage.getItem("homepageElements");
+          if (savedElements) {
+            setElements(JSON.parse(savedElements));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading whiteboard:", error);
+      }
+    };
+
+    loadWhiteboard();
+  }, [id]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-  }, []);
+
+    if (id) {
+      socket.emit("joinWhiteboard", id);
+    }
+  }, [id]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (tool === "eraser") {
-      canvas.style.cursor = "url('/eraser-cursor.png'), auto";
-    } else if (tool === "text") {
+    if (tool === "text") {
       canvas.style.cursor = "text";
     } else if (tool === "pointer") {
       canvas.style.cursor = "default";
@@ -62,75 +129,44 @@ const Whiteboard = () => {
     return () => clearInterval(cursorInterval);
   }, []);
 
+  const renderDrawing = (context, data) => {
+    const {
+      tool,
+      startX,
+      startY,
+      endX,
+      endY,
+      strokeWidth,
+      color,
+      text,
+      x,
+      y,
+      fontSize,
+      fontFamily,
+    } = data;
+    if (tool === "pencil") {
+      pencilTool(context, startX, startY, endX, endY, strokeWidth, color);
+    } else if (tool === "line") {
+      lineTool(context, startX, startY, endX, endY, strokeWidth, color);
+    } else if (tool === "rectangle") {
+      rectangleTool(context, startX, startY, endX, endY, strokeWidth, color);
+    } else if (tool === "circle") {
+      circleTool(context, startX, startY, endX, endY, strokeWidth, color);
+    } else if (tool === "arrow") {
+      arrowTool(context, startX, startY, endX, endY, strokeWidth, color);
+    } else if (tool === "text") {
+      textTool(context, text, x, y, fontSize, fontFamily, color);
+    }
+  };
+
   const drawElements = () => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
     elements.forEach((element) => {
-      if (element.type === "pencil") {
-        pencilTool(
-          context,
-          element.startX,
-          element.startY,
-          element.endX,
-          element.endY,
-          element.strokeWidth,
-          element.color
-        );
-      } else if (element.type === "line") {
-        lineTool(
-          context,
-          element.startX,
-          element.startY,
-          element.endX,
-          element.endY,
-          element.strokeWidth,
-          element.color
-        );
-      } else if (element.type === "rectangle") {
-        rectangleTool(
-          context,
-          element.startX,
-          element.startY,
-          element.endX,
-          element.endY,
-          element.strokeWidth,
-          element.color
-        );
-      } else if (element.type === "circle") {
-        circleTool(
-          context,
-          element.startX,
-          element.startY,
-          element.endX,
-          element.endY,
-          element.strokeWidth,
-          element.color
-        );
-      } else if (element.type === "arrow") {
-        arrowTool(
-          context,
-          element.startX,
-          element.startY,
-          element.endX,
-          element.endY,
-          element.strokeWidth,
-          element.color
-        );
-      } else if (element.type === "text") {
-        textTool(
-          context,
-          element.text,
-          element.x,
-          element.y,
-          element.fontSize,
-          element.fontFamily,
-          element.color
-        );
-      }
+      renderDrawing(context, element);
     });
 
-    // Draw the current text being typed
     if (typingPosition) {
       textTool(
         context,
@@ -142,7 +178,6 @@ const Whiteboard = () => {
         textProperties.color
       );
 
-      // Draw the cursor if visible
       if (cursorVisible) {
         const cursorX =
           typingPosition.x + context.measureText(currentText).width;
@@ -171,9 +206,11 @@ const Whiteboard = () => {
     const { offsetX, offsetY } = e.nativeEvent;
 
     if (tool === "eraser" && isDrawing) {
+      const data = { tool, x: offsetX, y: offsetY, size: eraserSize };
       setElements((prevElements) =>
         eraserTool(prevElements, offsetX, offsetY, eraserSize)
       );
+      socket.emit("draw", { ...data, whiteboardId: id });
     }
 
     if (!isDrawing) return;
@@ -190,146 +227,79 @@ const Whiteboard = () => {
         strokeWidth,
         color
       );
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          type: "pencil",
-          startX: startPos.x,
-          startY: startPos.y,
-          endX: offsetX,
-          endY: offsetY,
-          strokeWidth,
-          color,
-        },
-      ]);
+      const data = {
+        tool,
+        startX: startPos.x,
+        startY: startPos.y,
+        endX: offsetX,
+        endY: offsetY,
+        strokeWidth,
+        color,
+      };
+      setElements((prevElements) =>
+        Array.isArray(prevElements) ? [...prevElements, data] : [data]
+      );
       setStartPos({ x: offsetX, y: offsetY });
-    } else if (tool === "line") {
+      socket.emit("draw", { ...data, whiteboardId: id });
+    } else if (["line", "rectangle", "circle", "arrow"].includes(tool)) {
       drawElements();
-      lineTool(
-        context,
-        startPos.x,
-        startPos.y,
-        offsetX,
-        offsetY,
+      renderDrawing(context, {
+        tool,
+        startX: startPos.x,
+        startY: startPos.y,
+        endX: offsetX,
+        endY: offsetY,
         strokeWidth,
-        color
-      );
-    } else if (tool === "rectangle") {
-      drawElements();
-      rectangleTool(
-        context,
-        startPos.x,
-        startPos.y,
-        offsetX,
-        offsetY,
-        strokeWidth,
-        color
-      );
-    } else if (tool === "circle") {
-      drawElements();
-      circleTool(
-        context,
-        startPos.x,
-        startPos.y,
-        offsetX,
-        offsetY,
-        strokeWidth,
-        color
-      );
-    } else if (tool === "arrow") {
-      drawElements();
-      arrowTool(
-        context,
-        startPos.x,
-        startPos.y,
-        offsetX,
-        offsetY,
-        strokeWidth,
-        color
-      );
+        color,
+      });
     }
   };
 
-  const handleMouseUp = (e) => {
+  const handleMouseUp = async (e) => {
     if (!isDrawing) return;
     const { offsetX, offsetY } = e.nativeEvent;
-    setUndoStack([...undoStack, elements]); // Add current elements to undo stack
-    setRedoStack([]); // Clear redo stack
-
-    if (tool === "pencil") {
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          type: "pencil",
-          startX: startPos.x,
-          startY: startPos.y,
-          endX: offsetX,
-          endY: offsetY,
-          strokeWidth,
-          color,
-        },
-      ]);
-    } else if (tool === "line") {
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          type: "line",
-          startX: startPos.x,
-          startY: startPos.y,
-          endX: offsetX,
-          endY: offsetY,
-          strokeWidth,
-          color,
-        },
-      ]);
-    } else if (tool === "rectangle") {
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          type: "rectangle",
-          startX: startPos.x,
-          startY: startPos.y,
-          endX: offsetX,
-          endY: offsetY,
-          strokeWidth,
-          color,
-        },
-      ]);
-    } else if (tool === "circle") {
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          type: "circle",
-          startX: startPos.x,
-          startY: startPos.y,
-          endX: offsetX,
-          endY: offsetY,
-          strokeWidth,
-          color,
-        },
-      ]);
-    } else if (tool === "arrow") {
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          type: "arrow",
-          startX: startPos.x,
-          startY: startPos.y,
-          endX: offsetX,
-          endY: offsetY,
-          strokeWidth,
-          color,
-        },
-      ]);
-    }
     setIsDrawing(false);
+    setUndoStack([...undoStack, elements]);
+    setRedoStack([]);
+
+    const data = {
+      tool,
+      startX: startPos.x,
+      startY: startPos.y,
+      endX: offsetX,
+      endY: offsetY,
+      strokeWidth,
+      color,
+    };
+    setElements((prevElements) =>
+      Array.isArray(prevElements) ? [...prevElements, data] : [data]
+    );
+
+    if (["line", "rectangle", "circle", "arrow"].includes(tool)) {
+      socket.emit("draw", { ...data, whiteboardId: id });
+    }
+
+    if (id) {
+      try {
+        await api.put(`/whiteboards/${id}`, {
+          content: Array.isArray(elements) ? [...elements, data] : [data],
+        });
+      } catch (error) {
+        console.error("Error saving whiteboard:", error);
+      }
+    } else {
+      localStorage.setItem(
+        "homepageElements",
+        JSON.stringify(Array.isArray(elements) ? [...elements, data] : [data])
+      );
+    }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (tool === "text" && typingPosition) {
       if (e.key === "Enter") {
         const newTextElement = {
-          type: "text",
+          tool: "text",
           text: currentText,
           x: typingPosition.x,
           y: typingPosition.y,
@@ -337,56 +307,131 @@ const Whiteboard = () => {
           fontFamily: textProperties.fontFamily,
           color: textProperties.color,
         };
-        setElements((prevElements) => [...prevElements, newTextElement]);
+        setElements((prevElements) =>
+          Array.isArray(prevElements)
+            ? [...prevElements, newTextElement]
+            : [newTextElement]
+        );
         setCurrentText("");
         setTypingPosition(null);
-        setUndoStack([...undoStack, elements]); // Add current elements to undo stack
-        setRedoStack([]); // Clear redo stack
+        setUndoStack([...undoStack, elements]);
+        setRedoStack([]);
+
+        socket.emit("draw", { ...newTextElement, whiteboardId: id });
+
+        if (id) {
+          try {
+            await api.put(`/whiteboards/${id}`, {
+              content: Array.isArray(elements)
+                ? [...elements, newTextElement]
+                : [newTextElement],
+            });
+          } catch (error) {
+            console.error("Error saving whiteboard:", error);
+          }
+        } else {
+          localStorage.setItem(
+            "homepageElements",
+            JSON.stringify(
+              Array.isArray(elements)
+                ? [...elements, newTextElement]
+                : [newTextElement]
+            )
+          );
+        }
       } else if (e.key === "Backspace") {
         setCurrentText((prevText) => prevText.slice(0, -1));
       } else if (e.key.length === 1) {
-        // Only process single character keys
         setCurrentText((prevText) => prevText + e.key);
       }
     }
 
     if (e.ctrlKey && e.key === "z") {
       handleUndo();
+      socket.emit("draw", {
+        tool: "undo",
+        elements: undoStack[undoStack.length - 1] || [],
+        undoStack,
+        redoStack,
+        whiteboardId: id,
+      });
     } else if (e.ctrlKey && e.key === "y") {
       handleRedo();
+      socket.emit("draw", {
+        tool: "redo",
+        elements: redoStack[0] || [],
+        undoStack,
+        redoStack,
+        whiteboardId: id,
+      });
     }
   };
 
-  const handleClearCanvas = () => {
-    setUndoStack([...undoStack, elements]); // Add current elements to undo stack
-    setRedoStack([]); // Clear redo stack
+  const handleClearCanvas = async () => {
+    setUndoStack([...undoStack, elements]);
+    setRedoStack([]);
     setElements([]);
+    socket.emit("draw", { tool: "clearCanvas", whiteboardId: id });
+
+    if (id) {
+      try {
+        await api.put(`/whiteboards/${id}`, { content: [] });
+      } catch (error) {
+        console.error("Error clearing whiteboard:", error);
+      }
+    } else {
+      localStorage.setItem("homepageElements", JSON.stringify([]));
+    }
   };
 
-  const handleUndo = () => {
+  const handleUndo = async () => {
     if (undoStack.length > 0) {
       const lastState = undoStack.pop();
       setRedoStack([elements, ...redoStack]);
-      setElements(lastState);
+      setElements(lastState || []);
       setUndoStack([...undoStack]);
+
+      if (id) {
+        try {
+          await api.put(`/whiteboards/${id}`, { content: lastState || [] });
+        } catch (error) {
+          console.error("Error saving whiteboard after undo:", error);
+        }
+      } else {
+        localStorage.setItem(
+          "homepageElements",
+          JSON.stringify(lastState || [])
+        );
+      }
     }
   };
 
-  const handleRedo = () => {
+  const handleRedo = async () => {
     if (redoStack.length > 0) {
       const nextState = redoStack.shift();
       setUndoStack([...undoStack, elements]);
-      setElements(nextState);
+      setElements(nextState || []);
       setRedoStack([...redoStack]);
+
+      if (id) {
+        try {
+          await api.put(`/whiteboards/${id}`, { content: nextState || [] });
+        } catch (error) {
+          console.error("Error saving whiteboard after redo:", error);
+        }
+      } else {
+        localStorage.setItem(
+          "homepageElements",
+          JSON.stringify(nextState || [])
+        );
+      }
     }
   };
 
   useEffect(() => {
-    localStorage.setItem("elements", JSON.stringify(elements));
-  }, [elements]);
-
-  useEffect(() => {
-    drawElements();
+    if (Array.isArray(elements)) {
+      drawElements();
+    }
   }, [elements, currentText, cursorVisible]);
 
   useEffect(() => {
@@ -398,19 +443,21 @@ const Whiteboard = () => {
 
   return (
     <>
-      <div className="header-container">
+      <div>
         <Sidebar />
         <Toolbar setTool={setTool} />
         <button className="clear-canvas-btn" onClick={handleClearCanvas}>
           Clear Canvas
         </button>
-        <ToolOptionsSidebar
-          tool={tool}
-          setStrokeWidth={setStrokeWidth}
-          setColor={setColor}
-          setEraserSize={setEraserSize}
-          setTextProperties={setTextProperties}
-        />
+        {tool !== "pointer" && (
+          <ToolOptionsSidebar
+            tool={tool}
+            setStrokeWidth={setStrokeWidth}
+            setColor={setColor}
+            setEraserSize={setEraserSize}
+            setTextProperties={setTextProperties}
+          />
+        )}
       </div>
       <canvas
         ref={canvasRef}
