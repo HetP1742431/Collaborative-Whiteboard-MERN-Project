@@ -15,8 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin:
-      "https://collaborative-whiteboard-git-main-hetp1742431s-projects.vercel.app/",
+    origin: "https://collaborative-whiteboard-app.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -25,8 +24,7 @@ const io = new Server(server, {
 // Middleware
 app.use(
   cors({
-    origin:
-      "https://collaborative-whiteboard-git-main-hetp1742431s-projects.vercel.app/",
+    origin: "https://collaborative-whiteboard-app.onrender.com",
     credentials: true,
   })
 );

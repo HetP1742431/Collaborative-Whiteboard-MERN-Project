@@ -1,7 +1,6 @@
 import axios from "axios";
 
-export const baseURL =
-  "https://collaborative-whiteboard-api-git-main-hetp1742431s-projects.vercel.app/";
+export const baseURL = "https://collaborative-whiteboard-api.onrender.com";
 
 export const api = axios.create({
   baseURL: baseURL,
