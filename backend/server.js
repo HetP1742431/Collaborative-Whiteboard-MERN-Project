@@ -15,7 +15,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://www.collaborateboard.site/",
+    origin:
+      "https://www.collaborateboard.site/, https://collaborative-whiteboard-app-uf4n.onrender.com/",
     credentials: true,
   },
 });
@@ -23,7 +24,8 @@ const io = new Server(server, {
 // Middleware
 app.use(
   cors({
-    origin: "https://www.collaborateboard.site/",
+    origin:
+      "https://www.collaborateboard.site/, https://collaborative-whiteboard-app-uf4n.onrender.com/",
     credentials: true,
   })
 );
