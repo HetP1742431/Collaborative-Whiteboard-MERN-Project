@@ -2,7 +2,6 @@ import mongoose, { Schema } from "mongoose";
 
 const participantSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  role: { type: String, enum: ["owner", "editor", "viewer"], required: true },
 });
 
 const whiteboardSchema = new mongoose.Schema({
@@ -14,7 +13,6 @@ const whiteboardSchema = new mongoose.Schema({
     {
       code: { type: String, required: true },
       email: { type: String, required: true },
-      role: { type: String, required: true },
     },
   ],
   createdAt: { type: Date, default: Date.now },

@@ -20,7 +20,7 @@ router.post("/create", authMiddleware, async (req, res) => {
     const newWhiteboard = new Whiteboard({
       title,
       owner: user._id,
-      participants: [{ user: user._id, role: "owner" }],
+      participants: [{ user: user._id }],
     });
     const savedWhiteboard = await newWhiteboard.save();
 
@@ -103,7 +103,7 @@ router.get("/:username/all", authMiddleware, async (req, res) => {
 
 // Share whiteboard (generate sharable link/code)
 router.post("/:id/share", authMiddleware, async (req, res) => {
-  const { role, recipientEmail } = req.body;
+  const { recipientEmail } = req.body;
   const whiteboardId = req.params.id;
   const username = req.user.username;
 
@@ -129,7 +129,6 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
     whiteboard.invitationCodes.push({
       code: shareCode,
       email: recipientEmail,
-      role,
     });
     await whiteboard.save();
 
@@ -188,7 +187,7 @@ router.post("/join", authMiddleware, async (req, res) => {
     }
 
     // Add user to whiteboard participants
-    whiteboard.participants.push({ user: user._id, role: invitation.role });
+    whiteboard.participants.push({ user: user._id });
     await whiteboard.save();
 
     // Add whiteboard to user's whiteboards
@@ -233,43 +232,6 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     res.json({ message: "Whiteboard deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// Change participant's role
-router.patch("/:id/role", authMiddleware, async (req, res) => {
-  const { participantId, newRole } = req.body;
-  const whiteboardId = req.params.id;
-  const username = req.user.username;
-
-  try {
-    const owner = await User.findOne({ username });
-    if (!owner) {
-      return res.status(404).json({ msg: "User not found" });
-    }
-
-    const whiteboard = await Whiteboard.findById(whiteboardId);
-    if (!whiteboard) {
-      return res.status(404).json({ msg: "Whiteboard not found" });
-    }
-
-    if (whiteboard.owner.toString() !== owner._id.toString()) {
-      return res.status(403).json({ msg: "Access denied" });
-    }
-
-    const participant = whiteboard.participants.find(
-      (p) => p.user.toString() === participantId
-    );
-    if (!participant) {
-      return res.status(404).json({ msg: "Participant not found" });
-    }
-
-    participant.role = newRole;
-    await whiteboard.save();
-
-    res.json({ message: "User role updated successfully" });
-  } catch (error) {
-    res.json({ error: "Internal server error" });
   }
 });
 

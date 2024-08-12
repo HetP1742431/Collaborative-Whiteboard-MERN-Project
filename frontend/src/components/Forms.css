@@ -2,7 +2,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 20px;
+  margin-top: 80px;
+  box-sizing: border-box;
 }
 
 .box {

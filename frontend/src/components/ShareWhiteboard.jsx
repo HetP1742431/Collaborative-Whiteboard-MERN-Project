@@ -3,11 +3,10 @@ import { useParams } from "react-router-dom";
 import { api } from "../apiConfig";
 import { AuthContext } from "../AuthContext";
 import Navbar from "./Navbar.jsx";
-import "./Forms.css"; // Custom CSS for additional styling
+import "./Forms.css";
 
 const ShareWhiteboard = () => {
   const [recipientEmail, setRecipientEmail] = useState("");
-  const [role, setRole] = useState("viewer");
   const [shareCode, setShareCode] = useState("");
   const [errors, setErrors] = useState({});
   const { user } = useContext(AuthContext);
@@ -20,7 +19,6 @@ const ShareWhiteboard = () => {
     try {
       const response = await api.post(`/whiteboards/${id}/share`, {
         recipientEmail,
-        role,
       });
       if (response.status === 200) {
         setShareCode(response.data.shareCode);
@@ -58,19 +56,6 @@ const ShareWhiteboard = () => {
                 onChange={(e) => setRecipientEmail(e.target.value)}
                 required
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="role">Role</label>
-              <select
-                className={`form-control ${errors.error ? "is-invalid" : ""}`}
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              >
-                <option value="viewer">Viewer</option>
-                <option value="editor">Editor</option>
-              </select>
             </div>
             {errors.error && (
               <div className="invalid-feedback">{errors.error}</div>

@@ -18,7 +18,6 @@ const CreateWhiteboard = () => {
       const response = await api.post("/whiteboards/create", { title });
       if (response.status === 200) {
         const { _id } = response.data;
-        console.log("Whiteboard ID:", _id); // Log the ID for debugging
         navigate(`/whiteboards/${_id}`);
       }
     } catch (error) {

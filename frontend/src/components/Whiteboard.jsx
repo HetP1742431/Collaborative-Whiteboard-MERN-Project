@@ -1,9 +1,10 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import { io } from "socket.io-client";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Toolbar from "./Toolbar";
 import ToolOptionsSidebar from "./ToolOptionsSidebar";
+import ChatBox from "./ChatBox";
 import {
   pencilTool,
   lineTool,
@@ -15,7 +16,9 @@ import {
 } from "./ToolFunctions";
 import "./Whiteboard.css";
 import { baseURL, api } from "../apiConfig";
+import { AuthContext } from "../AuthContext";
 
+// Initialize a single WebSocket connection for both whiteboard and chat
 const socket = io(baseURL, {
   transports: ["websocket"],
 });
@@ -40,46 +43,56 @@ const Whiteboard = () => {
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected to server:", socket.id);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected from server");
-    });
-
-    socket.on("draw", (data) => {
-      if (data.tool === "eraser") {
-        setElements((prevElements) =>
-          eraserTool(
-            Array.isArray(prevElements) ? prevElements : [],
-            data.x,
-            data.y,
-            data.size
-          )
-        );
-      } else if (data.tool === "clearCanvas") {
-        setElements([]);
-      } else if (data.tool === "undo" || data.tool === "redo") {
-        setElements(data.elements || []);
-        setUndoStack(data.undoStack || []);
-        setRedoStack(data.redoStack || []);
-      } else {
-        setElements((prevElements) =>
-          Array.isArray(prevElements) ? [...prevElements, data] : [data]
-        );
+    if (id) {
+      if (user) {
+        socket.emit("joinWhiteboard", {
+          whiteboardId: id,
+          username: user.username,
+        });
       }
-    });
+
+      socket.on("draw", (data) => {
+        if (data.tool === "eraser") {
+          setElements((prevElements) =>
+            eraserTool(
+              Array.isArray(prevElements) ? prevElements : [],
+              data.x,
+              data.y,
+              data.size
+            )
+          );
+        } else if (data.tool === "clearCanvas") {
+          setElements([]);
+        } else if (data.tool === "undo" || data.tool === "redo") {
+          setElements(data.elements || []);
+          setUndoStack(data.undoStack || []);
+          setRedoStack(data.redoStack || []);
+        } else {
+          setElements((prevElements) =>
+            Array.isArray(prevElements) ? [...prevElements, data] : [data]
+          );
+        }
+      });
+
+      socket.on("updateActiveUsers", (count) => {
+        console.log(`Active users: ${count}`);
+      });
+    }
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      if (user) {
+        socket.emit("leaveWhiteboard", {
+          whiteboardId: id,
+          username: user.username,
+        });
+      }
       socket.off("draw");
+      socket.off("updateActiveUsers");
     };
-  }, []);
+  }, [id, user]);
 
   useEffect(() => {
     const loadWhiteboard = async () => {
@@ -105,10 +118,6 @@ const Whiteboard = () => {
     const canvas = canvasRef.current;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
-    if (id) {
-      socket.emit("joinWhiteboard", id);
-    }
   }, [id]);
 
   useEffect(() => {
@@ -466,6 +475,8 @@ const Whiteboard = () => {
         onMouseUp={handleMouseUp}
         className="whiteboard-canvas"
       />
+      {user && id && <ChatBox socket={socket} />}{" "}
+      {/* Pass socket as prop to ChatBox */}
     </>
   );
 };
