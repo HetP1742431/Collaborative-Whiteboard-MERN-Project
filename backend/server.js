@@ -15,14 +15,21 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin:
+      "https://collaborative-whiteboard-91vqjemaj-hetp1742431s-projects.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
 // Middleware
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(
+  cors({
+    origin:
+      "https://collaborative-whiteboard-91vqjemaj-hetp1742431s-projects.vercel.app",
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
