@@ -16,7 +16,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin:
-      "https://collaborative-whiteboard-91vqjemaj-hetp1742431s-projects.vercel.app",
+      "https://collaborative-whiteboard-fd2k7kgd8-hetp1742431s-projects.vercel.app/",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -26,7 +26,7 @@ const io = new Server(server, {
 app.use(
   cors({
     origin:
-      "https://collaborative-whiteboard-91vqjemaj-hetp1742431s-projects.vercel.app",
+      "https://collaborative-whiteboard-fd2k7kgd8-hetp1742431s-projects.vercel.app/",
     credentials: true,
   })
 );
