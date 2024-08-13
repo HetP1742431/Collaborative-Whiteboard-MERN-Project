@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
 import http from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
@@ -38,17 +39,30 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Use routes
+// Serve static files from the React frontend app
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Use API routes
 app.use("/users", userRoutes);
 app.use("/whiteboards", whiteboardRoutes);
+
+// Serve the React frontend for all other routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+});
 
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.log(error);
+    process.exit(1);
   }
 };
 
