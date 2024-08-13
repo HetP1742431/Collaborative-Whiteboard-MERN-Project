@@ -39,18 +39,23 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static files from the React frontend app
-const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, "../frontend/build")));
-
 // Use API routes
 app.use("/users", userRoutes);
 app.use("/whiteboards", whiteboardRoutes);
 
-// Serve the React frontend for all other routes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-});
+// Deployment
+const __dirname1 = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname1, "/frontend/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname1, "frontend", "dist", "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("API running successfully");
+  });
+}
 
 // Connect to MongoDB
 const connectDB = async () => {
