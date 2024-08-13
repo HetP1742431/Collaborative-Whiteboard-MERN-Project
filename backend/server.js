@@ -15,17 +15,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "https://www.collaborateboard.site",
-        "https://collaborative-whiteboard-app-uf4n.onrender.com",
-      ];
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "https://www.collaborateboard.site",
+      "https://collaborateboard.site",
+    ],
     credentials: true,
   },
 });
@@ -33,17 +26,10 @@ const io = new Server(server, {
 // Middleware to dynamically set CORS headers
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "https://www.collaborateboard.site",
-        "https://collaborative-whiteboard-app-uf4n.onrender.com",
-      ];
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "https://www.collaborateboard.site",
+      "https://collaborateboard.site",
+    ],
     credentials: true,
   })
 );
