@@ -41,7 +41,7 @@ app.use(express.json());
 
 // Serve static files from the React frontend app
 const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.use(express.static(path.join(__dirname, "../frontend/build")));
 
 // Use API routes
 app.use("/users", userRoutes);
@@ -49,20 +49,16 @@ app.use("/whiteboards", whiteboardRoutes);
 
 // Serve the React frontend for all other routes
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
 
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.log(error);
-    process.exit(1);
   }
 };
 
