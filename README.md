@@ -51,4 +51,4 @@ Through this project, I enhanced my skills in both frontend and backend developm
 
 This project showcases my ability to build complex, interactive applications with a focus on user experience, security, and real-time functionality. I invite you to explore the live demo and check out the code on GitHub.
 
-- **Live Demo Video**: [Demo video]([https://www.collaborateboard.site](https://drive.google.com/file/d/1Eg7V6xpsUchCkgGjAxFjvwQYUYJcBenP/view?usp=drive_link))
+- **Live Demo Video**: [Demo video](https://www.collaborateboard.site](https://drive.google.com/file/d/1Eg7V6xpsUchCkgGjAxFjvwQYUYJcBenP/view?usp=drive_link).
